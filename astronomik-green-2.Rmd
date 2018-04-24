@@ -59,12 +59,14 @@ To calculate FWHM of the filter transmission peak I first calculate the waveleng
 ```{r}
 i0 <- max(which(data$transmission[1:index] < data$transmission[index]/2))
 w0 <- (data$wavelength[i0] + data$wavelength[i0+1]) / 2
+w0
 ```
 
 ... then the wavelength at half maximum on the longer wavelength side ...
 ```{r}
 i1 <- index + min(which(data$transmission[index:nrow(data)] < data$transmission[index]/2))
 w1 <- (data$wavelength[i1] + data$wavelength[i1-1]) / 2
+w1
 ```
 
 ... what gives me the full with half maximum
