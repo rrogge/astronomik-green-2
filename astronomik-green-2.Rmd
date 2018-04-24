@@ -1,0 +1,75 @@
+---
+title: "Astronomik Profi Grün Typ 2"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+rm(list=ls())
+```
+
+```{r, message=FALSE, warning=FALSE}
+library(data.table)
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+printf <- function(...) print(sprintf(...))
+```
+
+Read transmission data from file and preprocess
+```{r}
+raw <- read.csv("astronomik-green-2.csv")
+
+data <- raw %>%
+  rename(wavelength = Wavelength..nm.) %>%
+  rename(transmission = X.T) %>%
+  select(wavelength, transmission) %>%
+  filter(complete.cases(.)) %>%
+  arrange(wavelength)
+
+print(data.table(data))
+```
+
+Transmission data wavelength range
+```{r}
+wavelength.range <- list(min=min(data$wavelength), max=max(data$wavelength))
+wavelength.range
+```
+
+Maximum transmission within wavelength range
+```{r}
+index <- which.max(data$transmission)
+T.max <- list(wavelength=data$wavelength[index], transmission=data$transmission[index])
+T.max
+```
+
+Plot of transmission vs wavelength
+```{r, echo}
+ggplot(data) + 
+  geom_line(aes(x=wavelength, y=transmission), color="green") +
+  coord_cartesian(xlim = c(200,900), ylim=c(0,100), expand=FALSE) +
+  labs(x="Wavelength [nm]", y="Transmission [%]", title="Astronomik Profi Grün 2") +
+  theme_bw()
+```
+
+To calculate FWHM of the filter transmission peak I first calculate the wavelength at half maximum on the shorter wavelength side ...
+```{r}
+i0 <- max(which(data$transmission[1:index] < data$transmission[index]/2))
+w0 <- (data$wavelength[i0] + data$wavelength[i0+1]) / 2
+```
+
+... then the wavelength at half maximum on the longer wavelength side ...
+```{r}
+i1 <- index + min(which(data$transmission[index:nrow(data)] < data$transmission[index]/2))
+w1 <- (data$wavelength[i1] + data$wavelength[i1-1]) / 2
+```
+
+... what gives me the full with half maximum
+```{r}
+fwhm <- w1 - w0
+fwhm
+```
+
